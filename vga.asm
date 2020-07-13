@@ -139,31 +139,31 @@ Line:                 ;         0
 LeftBorderLoop:
   dec count           ; 1*
   brne LeftBorderLoop ; 2* -1
-  nop                 ; 2
-  nop
+  nop                 ; 1
 
   ldi count, 8        ; 1
 DataLoop:
   ld temp, x          ; 2*
+  swap temp           ; 1*
   andi temp, 7        ; 1*      +28=28
   out PORTB, temp     ; 1*
   ld temp, x+         ; 2*
-  swap temp           ; 1*
   andi temp, 7        ; 1*
   nop
   nop
   nop
-  nop                 ; 4*
+  nop
+  nop                 ; 5*
   out PORTB, temp     ; 1*
   dec count           ; 1*
-  nop
-  nop                 ; 2*
+  nop                 ; 1*
   brne DataLoop       ; 2* -1
   nop
   nop
   nop
   nop
-  nop                 ; 5       +144=172
+  nop
+  nop                 ; 6       +144=172
 
   out PORTB, border   ; 1
   ldi count, 9        ; 1
@@ -206,3 +206,6 @@ RepeatedLineNop:
   nop
   nop                 ; 2
   rjmp Line           ; 2 TODO
+
+Data:
+  .DB 0x00
