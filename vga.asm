@@ -24,8 +24,9 @@ Main:
   ldi hsync, 1 << H
   ldi vsync, 1 << V
   ldi xsync, (1 << H) | (1 << V)
-  ldi temp, 0b00011111
+  ldi temp, 0xFF
   out DDRB, temp
+  out PORTD, temp
 
   ldi temp, 1 << R
   clr xh
@@ -123,13 +124,16 @@ BPBackLoop:
   brne BPBackLoop     ; 2* -1
 
   dec line            ; 1
-  brne BackPorchLine ; 2 (-1)  +22=264
+  brne BackPorchLine  ; 2 (-1)  +22=264
 
-Data:
-  ldi line, 16          ; 1 TODO
-  ldi linerepeat, 36    ; 1 TODO
 
-Line:                 ;         0
+
+
+  ldi line, 16        ; 1 TODO
+Line:
+
+  ldi linerepeat, 36  ; 1 TODO
+RepeatedLine:         ;         0
 
   out PORTB, border   ; 1
   ldi count, 7        ; 1
@@ -189,6 +193,12 @@ BackPorchLoop:
   dec count           ; 1*
   brne BackPorchLoop  ; 2* -1
 
+  subi x, 16          ; 1 TODO
+  dec linerepeat      ; 1 TODO
+  brne RepeatedLine   ; 2/1 TODO
+
+  adiw x, 16          ; 1 TODO
   dec line            ; 1
   brne Line           ; 2 (-1)  TODO
+
   rjmp Frame          ; 2       +22=264 TODO
