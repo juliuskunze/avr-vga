@@ -33,15 +33,12 @@ Main:
   ldi xl, RAMSTART
   ldi count, 128
 DataLoaderLoop:
-  st x+, temp
+  st x+, count
   dec count
   brne DataLoaderLoop
 
-
-
 Frame:
-
-
+  ldi xl, RAMSTART
   ldi line, 13        ; 1 TODO
 FrontPorchLine:       ;         0
   out PORTB, porch    ; 1
@@ -98,7 +95,6 @@ VSyncBackLoop:
   brne VsyncLine      ; 2 (-1)  +22=264
 
 
-
   ldi line, 13        ; 1 TODO
 BackPorchLine:        ;         0
   out PORTB, porch    ; 1
@@ -128,7 +124,8 @@ BPBackLoop:
 
 
 
-
+  clr xh              ; 1 TODO
+  ldi xl, RAMSTART    ; 1 TODO
   ldi line, 16        ; 1 TODO
 Line:
 
@@ -186,18 +183,18 @@ HSyncLoop:
   brne HsyncLoop      ; 2* -1   +32=242
 
   out PORTB, porch    ; 1
-  ldi count, 5        ; 1
+  ldi count, 4        ; 1
   nop
   nop                 ; 2
 BackPorchLoop:
   dec count           ; 1*
   brne BackPorchLoop  ; 2* -1
 
-  subi x, 16          ; 1 TODO
+  subi x, 8           ; 1 TODO
   dec linerepeat      ; 1 TODO
   brne RepeatedLine   ; 2/1 TODO
 
-  adiw x, 16          ; 1 TODO
+  subi x, 255 - 8     ; 1 TODO # add 16
   dec line            ; 1
   brne Line           ; 2 (-1)  TODO
 
