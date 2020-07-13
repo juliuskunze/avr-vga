@@ -40,6 +40,7 @@ DataLoaderLoop:
 
 Frame:
 
+
   ldi line, 13        ; 1 TODO
 FrontPorchLine:       ;         0
   out PORTB, porch    ; 1
@@ -67,8 +68,67 @@ FPBackLoop:
   dec line            ; 1
   brne FrontPorchLine ; 2 (-1)  +22=264
 
-ldi line, 16          ; 1 TODO
-ldi linerepeat, 36    ; 1 TODO
+
+  ldi line, 4         ; 1 TODO
+VSyncLine:            ;         0
+  out PORTB, vsync    ; 1
+  nop                 ; 1
+  nop                 ; 1
+
+  ldi count, 69       ; 1
+VsyncLoop:
+  dec count           ; 1*
+  brne VsyncLoop      ; 2* -1   +210=210
+
+  out PORTB, xsync    ; 1
+  ldi count, 10       ; 1
+  nop                 ; 1
+XsyncLoop:
+  dec count           ; 1*
+  brne XsyncLoop      ; 2* -1   +32=242
+
+  out PORTB, vsync    ; 1
+  ldi count, 6        ; 1
+VSyncBackLoop:
+  dec count           ; 1*
+  brne VSyncBackLoop  ; 2* -1
+
+  dec line            ; 1
+  brne VsyncLine      ; 2 (-1)  +22=264
+
+
+
+  ldi line, 13        ; 1 TODO
+BackPorchLine:        ;         0
+  out PORTB, porch    ; 1
+  nop                 ; 1
+  nop                 ; 1
+
+  ldi count, 69       ; 1
+BPLoop:
+  dec count           ; 1*
+  brne BPLoop         ; 2* -1   +210=210
+
+  out PORTB, hsync    ; 1
+  ldi count, 10       ; 1
+  nop                 ; 1
+BPHSyncLoop:
+  dec count           ; 1*
+  brne BPHSyncLoop    ; 2* -1   +32=242
+
+  out PORTB, porch    ; 1
+  ldi count, 6        ; 1
+BPBackLoop:
+  dec count           ; 1*
+  brne BPBackLoop     ; 2* -1
+
+  dec line            ; 1
+  brne BackPorchLine ; 2 (-1)  +22=264
+
+Data:
+  ldi line, 16          ; 1 TODO
+  ldi linerepeat, 36    ; 1 TODO
+
 Line:                 ;         0
 
   out PORTB, border   ; 1
@@ -130,5 +190,5 @@ BackPorchLoop:
   brne BackPorchLoop  ; 2* -1
 
   dec line            ; 1
-  brne Line           ; 2 (-1)
-  rjmp Frame          ; 2       +22=264
+  brne Line           ; 2 (-1)  TODO
+  rjmp Frame          ; 2       +22=264 TODO
