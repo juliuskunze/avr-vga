@@ -19,7 +19,7 @@ Main:
   .def line = r24
   .def linerepeat = r25
   clr r0
-  ldi border, 1 << B
+  ldi border, 0
   ldi porch, 0
   ldi hsync, 1 << H
   ldi vsync, 1 << V
@@ -28,17 +28,18 @@ Main:
   out DDRB, temp
   out PORTD, temp
 
-  ldi temp, 1 << R
   clr xh
   ldi xl, RAMSTART
   ldi count, 128
+  ldi temp, 0
 DataLoaderLoop:
-  st x+, count
+  st x+, temp
+  inc temp
   dec count
   brne DataLoaderLoop
 
 Frame:
-  ldi xl, RAMSTART
+  ldi xl, RAMSTART - 8; 1 TODO
   ldi line, 13        ; 1 TODO
 FrontPorchLine:       ;         0
   out PORTB, porch    ; 1
@@ -55,19 +56,20 @@ FPLoop:
   nop                 ; 1
 FPHSyncLoop:
   dec count           ; 1*
-  brne FPHsyncLoop; 2* -1   +32=242
+  brne FPHsyncLoop    ; 2* -1   +32=242
 
   out PORTB, porch    ; 1
-  ldi count, 6        ; 1
+  ldi count, 5        ; 1
+  nop
+  nop                 ; 2
 FPBackLoop:
   dec count           ; 1*
   brne FPBackLoop     ; 2* -1
 
+  ldi linerepeat, 4   ; 1 do here to already to avoid offset
   dec line            ; 1
   brne FrontPorchLine ; 2 (-1)  +22=264
 
-
-  ldi line, 4         ; 1 TODO
 VSyncLine:            ;         0
   out PORTB, vsync    ; 1
   nop                 ; 1
@@ -86,16 +88,19 @@ XsyncLoop:
   brne XsyncLoop      ; 2* -1   +32=242
 
   out PORTB, vsync    ; 1
-  ldi count, 6        ; 1
+  ldi count, 5        ; 1
+  nop
+  nop
+  nop                 ; 3
 VSyncBackLoop:
   dec count           ; 1*
   brne VSyncBackLoop  ; 2* -1
 
-  dec line            ; 1
+  ldi line, 13        ; 1 do here already to avoid offset
+  dec linerepeat      ; 1
   brne VsyncLine      ; 2 (-1)  +22=264
 
 
-  ldi line, 13        ; 1 TODO
 BackPorchLine:        ;         0
   out PORTB, porch    ; 1
   nop                 ; 1
@@ -124,13 +129,10 @@ BPBackLoop:
 
 
 
-  clr xh              ; 1 TODO
   ldi xl, RAMSTART    ; 1 TODO
   ldi line, 16        ; 1 TODO
-Line:
-
   ldi linerepeat, 36  ; 1 TODO
-RepeatedLine:         ;         0
+Line:                 ;         0
 
   out PORTB, border   ; 1
   ldi count, 7        ; 1
@@ -184,18 +186,23 @@ HSyncLoop:
 
   out PORTB, porch    ; 1
   ldi count, 4        ; 1
-  nop
-  nop                 ; 2
+  nop                 ; 1
 BackPorchLoop:
   dec count           ; 1*
   brne BackPorchLoop  ; 2* -1
 
-  subi x, 8           ; 1 TODO
-  dec linerepeat      ; 1 TODO
-  brne RepeatedLine   ; 2/1 TODO
+  subi x, 8           ; 1
+  dec linerepeat      ; 1
+  brne RepeatedLineNop; 2 (-1) +22=264
 
-  subi x, 255 - 8     ; 1 TODO # add 16
+  subi x, -8          ; 1 # add 8
+  ldi linerepeat, 36  ; 1
   dec line            ; 1
-  brne Line           ; 2 (-1)  TODO
+  brne Line           ; 2 (-1) +22=264
 
-  rjmp Frame          ; 2       +22=264 TODO
+  rjmp Frame          ; 2    TODO
+
+RepeatedLineNop:
+  nop
+  nop                 ; 2
+  rjmp Line           ; 2 TODO
