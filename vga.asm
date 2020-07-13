@@ -7,6 +7,7 @@ Main:
   .equ H = 3
   .equ V = 4
   .equ RAMSTART = 0x60
+  .equ RAMSTOP = RAMSTART + 128
   .def zero = r0
   .def count = r17
   .def temp = r18
@@ -15,6 +16,8 @@ Main:
   .def hsync = r21
   .def vsync = r22
   .def xsync = r23
+  .def line = r24
+  .def linerepeat = r25
   clr r0
   ldi border, 1 << B
   ldi porch, 0
@@ -33,16 +36,40 @@ DataLoaderLoop:
   dec count
   brne DataLoaderLoop
 
-VBlank:
 
-;  out PORTB, border   ; 1
-;  ldi count, 9        ; 1
-;RightBorderLoop:
-;  dec count           ; 1*
-;  brne RightBorderLoop; 1*      +28=200
 
+Frame:
+
+  ldi line, 13        ; 1 TODO
+FrontPorchLine:       ;         0
+  out PORTB, porch    ; 1
+  nop                 ; 1
+  nop                 ; 1
+
+  ldi count, 69       ; 1
+FPLoop:
+  dec count           ; 1*
+  brne FPLoop         ; 2* -1   +210=210
+
+  out PORTB, hsync    ; 1
+  ldi count, 10       ; 1
+  nop                 ; 1
+FPHSyncLoop:
+  dec count           ; 1*
+  brne FPHsyncLoop; 2* -1   +32=242
+
+  out PORTB, porch    ; 1
+  ldi count, 6        ; 1
+FPBackLoop:
+  dec count           ; 1*
+  brne FPBackLoop     ; 2* -1
+
+  dec line            ; 1
+  brne FrontPorchLine ; 2 (-1)  +22=264
+
+ldi line, 16          ; 1 TODO
+ldi linerepeat, 36    ; 1 TODO
 Line:                 ;         0
-  ldi xl, RAMSTART    ; 1 TODO
 
   out PORTB, border   ; 1
   ldi count, 7        ; 1
@@ -79,7 +106,7 @@ DataLoop:
   ldi count, 9        ; 1
 RightBorderLoop:
   dec count           ; 1*
-  brne RightBorderLoop; 1*      +28=200
+  brne RightBorderLoop; 2* -1   +28=200
 
   out PORTB, porch    ; 1
   ldi count, 3        ; 1
@@ -95,10 +122,13 @@ HSyncLoop:
   brne HsyncLoop      ; 2* -1   +32=242
 
   out PORTB, porch    ; 1
-  ldi count, 6        ; 1
-  nop                 ; 1
+  ldi count, 5        ; 1
+  nop
+  nop                 ; 2
 BackPorchLoop:
   dec count           ; 1*
   brne BackPorchLoop  ; 2* -1
 
-  rjmp Line           ; 2       +22=264
+  dec line            ; 1
+  brne Line           ; 2 (-1)
+  rjmp Frame          ; 2       +22=264
