@@ -8,19 +8,17 @@ Main:
   .equ V = 4
   .equ RAMSTART = 0x60
   .equ RAMSTOP = RAMSTART + 128
-  .def zero = r0
+  .def porch = r0
   .def count = r17
   .def temp = r18
-  .def border = r19
-  .def porch = r20
+  .def dataline = r19
+  .def linealt = r20
   .def hsync = r21
   .def vsync = r22
   .def xsync = r23
   .def line = r24
   .def linerepeat = r25
-  clr r0
-  ldi border, 0
-  ldi porch, 0
+  clr porch
   ldi hsync, 1 << H
   ldi vsync, 1 << V
   ldi xsync, (1 << H) | (1 << V)
@@ -40,8 +38,11 @@ DataLoaderLoop:
   brne DataLoaderLoop
 
 Frame:
-  ldi xl, RAMSTART - 8; 1 TODO
-  ldi line, 13        ; 1 TODO
+  ldi xl, RAMSTART    ; 1
+  ldi linerepeat, 36  ; 1
+  ldi dataline, 16    ; 1
+
+  ldi line, 13        ; 1
 FrontPorchLine:       ;         0
   out PORTB, porch    ; 1
   nop                 ; 1
@@ -67,7 +68,7 @@ FPBackLoop:
   dec count           ; 1*
   brne FPBackLoop     ; 2* -1
 
-  ldi linerepeat, 4   ; 1 do here to already to avoid offset
+  ldi linealt, 4      ; 1 do here to already to avoid offset
   dec line            ; 1
   brne FrontPorchLine ; 2 (-1)  +22=264
 
@@ -98,7 +99,7 @@ VSyncBackLoop:
   brne VSyncBackLoop  ; 2* -1
 
   ldi line, 13        ; 1 do here already to avoid offset
-  dec linerepeat      ; 1
+  dec linealt         ; 1
   brne VsyncLine      ; 2 (-1)  +22=264
 
 
@@ -130,12 +131,9 @@ BPBackLoop:
 
 
 
-  ldi xl, RAMSTART    ; 1 TODO
-  ldi line, 16        ; 1 TODO
-  ldi linerepeat, 36  ; 1 TODO
 Line:                 ;         0
 
-  out PORTB, border   ; 1
+  out PORTB, porch    ; 1
   ldi count, 7        ; 1
 LeftBorderLoop:
   dec count           ; 1*
@@ -166,7 +164,7 @@ DataLoop:
   nop
   nop                 ; 6       +144=172
 
-  out PORTB, border   ; 1
+  out PORTB, porch    ; 1
   ldi count, 9        ; 1
 RightBorderLoop:
   dec count           ; 1*
@@ -186,27 +184,37 @@ HSyncLoop:
   brne HsyncLoop      ; 2* -1   +32=242
 
   out PORTB, porch    ; 1
-  ldi count, 4        ; 1
-  nop                 ; 1
+  ldi count, 2        ; 1
+  nop
+  nop                 ; 2
 BackPorchLoop:
   dec count           ; 1*
   brne BackPorchLoop  ; 2* -1
 
   subi x, 8           ; 1
-  dec linerepeat      ; 1
-  brne RepeatedLineNop; 2 (-1) +22=264
+  dec linerepeat      ; 1      +11
+  brne RepeatedLine   ; 2 (-1)
 
-  subi x, -8          ; 1 # add 8
+  subi x, -8          ; 1 # add
   ldi linerepeat, 36  ; 1
-  dec line            ; 1
-  brne Line           ; 2 (-1) +22=264
+  dec dataline        ; 1
+  brne DataLine       ; 2 (-1)
 
-  rjmp Frame          ; 2    TODO
+  rjmp Frame          ; 2      (+22-4=264-4)
 
-RepeatedLineNop:
+RepeatedLine:
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop                 ; 6
+  rjmp Line           ; 2      +22=264
+
+DataLine:
   nop
   nop                 ; 2
-  rjmp Line           ; 2 TODO
+  rjmp Line           ; 2      (+22=264)
 
 Data:
   .DB 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
@@ -215,7 +223,7 @@ Data:
   .DB 0x00, 0x70, 0x00, 0x00, 0x00, 0x00, 0x00, 0x70
   .DB 0x00, 0x70, 0x00, 0x00, 0x00, 0x00, 0x00, 0x70
   .DB 0x00, 0x70, 0x00, 0x44, 0x04, 0x40, 0x00, 0x70
-  .DB 0x00, 0x70, 0x04, 0x54, 0x44, 0x44, 0x00, 0x70
+  .DB 0x00, 0x70, 0x04, 0x64, 0x44, 0x44, 0x00, 0x70
   .DB 0x00, 0x70, 0x04, 0x44, 0x44, 0x44, 0x00, 0x70
   .DB 0x00, 0x70, 0x04, 0x44, 0x44, 0x44, 0x00, 0x70
   .DB 0x00, 0x70, 0x00, 0x44, 0x44, 0x40, 0x00, 0x70
