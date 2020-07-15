@@ -128,7 +128,7 @@ BPBackLoop:
 
   dec line            ; 1
   brne BackPorchLine  ; 2 (-1)  +22=264
-
+  nop                 ; 1
 
 
 Line:                 ;         0
@@ -184,15 +184,13 @@ HSyncLoop:
   brne HsyncLoop      ; 2* -1   +32=242
 
   out PORTB, porch    ; 1
-  ldi count, 2        ; 1
-  nop
-  nop                 ; 2
+  ldi count, 3        ; 1
 BackPorchLoop:
   dec count           ; 1*
   brne BackPorchLoop  ; 2* -1
 
   subi x, 8           ; 1
-  dec linerepeat      ; 1      +11
+  dec linerepeat      ; 1
   brne RepeatedLine   ; 2 (-1)
 
   subi x, -8          ; 1 # add
@@ -217,7 +215,7 @@ DataLine:
   rjmp Line           ; 2      (+22=264)
 
 Data:
-  .DB 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+  .DB 0x70, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x07
   .DB 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
   .DB 0x00, 0x77, 0x77, 0x77, 0x77, 0x77, 0x77, 0x70
   .DB 0x00, 0x70, 0x00, 0x00, 0x00, 0x00, 0x00, 0x70
