@@ -1,12 +1,14 @@
 # avr-vga
 
-Programs the ATtiny2313 microcontroller to produce a 800x600, 60Hz VGA signal via carefully timed machine instructions. 
+![Example dislay output](https://imgur.com/0lapQU9.jpg)
+
+Programs the ATtiny2313 microcontroller to produce a 800x600, 60Hz VGA signal via carefully timed machine instructions.
 
 Supports a 16x16 resolution (restricted by the 128 Byte RAM) with 8 colors (could do 16).
 
 ## Hardware
 
-The ATtiny2313 needs to be connected to a 10MHz clock. 
+The ATtiny2313 needs to be connected to a 10MHz clock.
 5 output pins need to be connected to the corresponding VGA pins, with voltage lowered via appropriate resistors.
 
 ## Deployment
